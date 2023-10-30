@@ -33,6 +33,7 @@ struct ExampleControlTraits {
     using Event = ExampleEvent;
     using StateEnum = ExampleState;
     static constexpr DefaultActions kDefaultActions = eta_hsm::DefaultActions::eControlUpdate;
+    static constexpr LogActions kLogActions = eta_hsm::LogActions::eNothing;
     static constexpr bool kClearTimersOnExit = true;
 };
 
