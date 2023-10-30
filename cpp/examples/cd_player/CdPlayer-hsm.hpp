@@ -14,6 +14,9 @@ template <typename Current>
 inline void examples::cd_player::Top::handleEvent(examples::cd_player::Player& player, const Current& current,
                                                   Event event) const
 {
+    // silence compiler warnings about these parameters being unused
+    (void)current;
+
     switch (event)
     {
         // We can handle events here if we want them to have default

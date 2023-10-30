@@ -11,15 +11,7 @@ namespace cd_player {
 
 enum class CdEvent { ePlay, eOpenClose, eStop, eCdDetected, ePause, eEndPause, eHammer };
 
-enum class CdState {
-    eTop,
-    eStopped,
-    eOpen,
-    eEmpty,
-    ePlaying,
-    ePaused,
-    eBroken
-};
+enum class CdState { eTop, eStopped, eOpen, eEmpty, ePlaying, ePaused, eBroken };
 
 using PlayerTraits = eta_hsm::StateMachineTraits<CdEvent, CdState, std::chrono::steady_clock,
                                                  DefaultActions::eEntryExitOnly, LogActions::eNothing>;
