@@ -20,8 +20,8 @@ enum class CdState {
     ePaused,
 };
 
-using PlayerTraits =
-    eta_hsm::StateMachineTraits<CdEvent, CdState, std::chrono::steady_clock, DefaultActions::eEntryExitOnly, LogActions::eNothing>;
+using PlayerTraits = eta_hsm::StateMachineTraits<CdEvent, CdState, std::chrono::steady_clock,
+                                                 DefaultActions::eEntryExitOnly, LogActions::eNothing>;
 
 /// While it is possible to declare and manipulate states directly (see examples::cd_player_basic),
 /// inheriting from eta_hsm::StateMachine makes it somewhat easier and provides more

@@ -67,14 +67,16 @@ public:
     template <ExampleState state>
     void entry()  // If called by hsm within "update", input is available as mInput
     {
-        utils::TestLog::instance() << "Customizable entry function for state " << wise_enum::to_string(state) << std::endl;
+        utils::TestLog::instance() << "Customizable entry function for state " << wise_enum::to_string(state)
+                                   << std::endl;
         mAccumultedEntryExit += static_cast<int>(state);
     }
 
     template <ExampleState state>
     void exit()  // If called by hsm within "update", input is available as mInput
     {
-        utils::TestLog::instance() << "Customizable exit function for state " << wise_enum::to_string(state) << std::endl;
+        utils::TestLog::instance() << "Customizable exit function for state " << wise_enum::to_string(state)
+                                   << std::endl;
         mAccumultedEntryExit -= static_cast<int>(state);
     }
 

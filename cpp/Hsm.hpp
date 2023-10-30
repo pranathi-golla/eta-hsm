@@ -416,8 +416,7 @@ struct StateTraits {
 /// Declaring this struct here as an example of StateMachine expects and as a convenience
 /// for existing users of StateMachine.
 template <typename Event_, typename StateEnum_, typename Clock_,
-          DefaultActions kDefaultActions_ = DefaultActions::eNothing,
-          LogActions kLogActions_ = LogActions::eNothing>
+          DefaultActions kDefaultActions_ = DefaultActions::eNothing, LogActions kLogActions_ = LogActions::eNothing>
 struct StateMachineTraits {
     using Clock = Clock_;  // used by EventEmittingStateMachine
     using Event = Event_;
