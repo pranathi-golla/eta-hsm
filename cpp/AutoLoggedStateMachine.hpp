@@ -36,7 +36,7 @@ public:
         if (mpLogger)
         {
             static_assert(wise_enum::is_wise_enum_v<typename StateMachineTraits::StateEnum>, "Ignorant State Enum");
-            *mpLogger << mName << " HSM entering " << wise_enum::to_string(state) << std::endl;
+            *mpLogger << mName << " HSM entering state " << wise_enum::to_string(state) << std::endl;
         }
     }
 
@@ -46,7 +46,17 @@ public:
         if (mpLogger)
         {
             static_assert(wise_enum::is_wise_enum_v<typename StateMachineTraits::StateEnum>, "Ignorant State Enum");
-            *mpLogger << mName << " HSM exiting " << wise_enum::to_string(state) << std::endl;
+            *mpLogger << mName << " HSM exiting state " << wise_enum::to_string(state) << std::endl;
+        }
+    }
+
+    template <typename StateMachineTraits::StateEnum state>
+    void logInit()  // If called by hsm within "update", input is available as mInput
+    {
+        if (mpLogger)
+        {
+            static_assert(wise_enum::is_wise_enum_v<typename StateMachineTraits::StateEnum>, "Ignorant State Enum");
+            *mpLogger << mName << " HSM initializing state " << wise_enum::to_string(state) << std::endl;
         }
     }
 

@@ -147,7 +147,7 @@ inline void examples::controller::Awake::init(examples::controller::ExampleContr
 {
     // This declares which substate we default into
     Init<examples::controller::Sober> i(stateMachine);
-    utils::TestLog::instance() << "init_Awake" << std::endl;
+    utils::TestLog::instance() << "Customizable initialization of state eAwake" << std::endl;
 }
 
 template <>
@@ -155,7 +155,7 @@ inline void examples::controller::Top::init(examples::controller::ExampleControl
 {
     // This declares which substate we default into
     Init<examples::controller::Awake> i(stateMachine);
-    utils::TestLog::instance() << "init_Top" << std::endl;
+    utils::TestLog::instance() << "Customizable initialization of state eTop" << std::endl;
 }
 
 // Entry, Exit, and During actions can now be given a more useful default behavior by passing an

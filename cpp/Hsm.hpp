@@ -377,6 +377,10 @@ struct Transition {
     ~Transition()
     {
         Transition<Target, Source, Target, TransitionSemantics>::entryActions(mHost, Bool<false>());
+        if constexpr (Host::kLogActions == LogActions::eEntryExit)
+        {
+            mHost.template logInit<Target::kState>();
+        }
         Target::init(mHost);
     }
 
@@ -392,6 +396,10 @@ struct Init {
     ~Init()
     {
         Target::entry(mHost);
+        if constexpr (Host::kLogActions == LogActions::eEntryExit)
+        {
+            mHost.template logInit<Target::kState>();
+        }
         Target::init(mHost);
     }
 

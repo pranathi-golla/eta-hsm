@@ -56,7 +56,7 @@ inline void ExampleControl::entry<ExampleState::eAwake>()
 {
     // Yes, we can also now test awake-ness by querying state, but I'm keeping this around as an example
     // of how to manipulate controller-continuous-state with state-specialized entry/exit functions.
-    utils::TestLog::instance() << "enter_Awake " << std::endl;
+    utils::TestLog::instance() << "Customizable entry function for State " << wise_enum::to_string(ExampleState::eAwake) << std::endl;
     mAccumultedEntryExit += static_cast<int>(ExampleState::eAwake);
     mAwake = true;
 }
@@ -64,7 +64,7 @@ inline void ExampleControl::entry<ExampleState::eAwake>()
 template <>
 inline void ExampleControl::exit<ExampleState::eAwake>()
 {
-    utils::TestLog::instance() << "exit_Awake " << std::endl;
+    utils::TestLog::instance() << "Customizable exit function for State " << wise_enum::to_string(ExampleState::eAwake) << std::endl;
     mAccumultedEntryExit -= static_cast<int>(ExampleState::eAwake);
     mAwake = false;
 }
