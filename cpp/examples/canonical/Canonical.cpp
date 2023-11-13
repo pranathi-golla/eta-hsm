@@ -20,6 +20,10 @@ template <typename Current>
 inline void examples::canonical::Top::handleEvent(examples::canonical::Canonical& stateMachine, const Current& current,
                                                   Event event) const
 {
+    // silence compiler warnings about these parameters being unused
+    (void)current;
+    (void)stateMachine;
+
     switch (event)
     {
         // We can handle events here if we want them to have default

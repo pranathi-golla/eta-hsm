@@ -30,6 +30,36 @@ public:
         StateMachine<SM, StateMachineTraits>::dispatch(evt);
     }
 
+    template <typename StateMachineTraits::StateEnum state>
+    void logEntry()  // If called by hsm within "update", input is available as mInput
+    {
+        if (mpLogger)
+        {
+            static_assert(wise_enum::is_wise_enum_v<typename StateMachineTraits::StateEnum>, "Ignorant State Enum");
+            *mpLogger << mName << " HSM entering state " << wise_enum::to_string(state) << std::endl;
+        }
+    }
+
+    template <typename StateMachineTraits::StateEnum state>
+    void logExit()  // If called by hsm within "update", input is available as mInput
+    {
+        if (mpLogger)
+        {
+            static_assert(wise_enum::is_wise_enum_v<typename StateMachineTraits::StateEnum>, "Ignorant State Enum");
+            *mpLogger << mName << " HSM exiting state " << wise_enum::to_string(state) << std::endl;
+        }
+    }
+
+    template <typename StateMachineTraits::StateEnum state>
+    void logInit()  // If called by hsm within "update", input is available as mInput
+    {
+        if (mpLogger)
+        {
+            static_assert(wise_enum::is_wise_enum_v<typename StateMachineTraits::StateEnum>, "Ignorant State Enum");
+            *mpLogger << mName << " HSM initializing state " << wise_enum::to_string(state) << std::endl;
+        }
+    }
+
     /// Friend the LeafState so that it can access `next` below without exposing it to the world
     template <typename Traits, typename Parent>
     friend struct LeafState;

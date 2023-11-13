@@ -14,6 +14,10 @@ template <typename Current>
 inline void examples::controller::Top::handleEvent(examples::controller::ExampleControl& stateMachine,
                                                    const Current& current, Event event) const
 {
+    // silence compiler warnings about these parameters being unused
+    (void)current;
+    (void)stateMachine;
+
     switch (event)
     {
         // We can handle events here if we want them to have default
@@ -147,7 +151,7 @@ inline void examples::controller::Awake::init(examples::controller::ExampleContr
 {
     // This declares which substate we default into
     Init<examples::controller::Sober> i(stateMachine);
-    utils::TestLog::instance() << "init_Awake" << std::endl;
+    utils::TestLog::instance() << "Customizable initialization of state eAwake" << std::endl;
 }
 
 template <>
@@ -155,7 +159,7 @@ inline void examples::controller::Top::init(examples::controller::ExampleControl
 {
     // This declares which substate we default into
     Init<examples::controller::Awake> i(stateMachine);
-    utils::TestLog::instance() << "init_Top" << std::endl;
+    utils::TestLog::instance() << "Customizable initialization of state eTop" << std::endl;
 }
 
 // Entry, Exit, and During actions can now be given a more useful default behavior by passing an

@@ -19,6 +19,11 @@ enum class DefaultActions {
     eEntryExitOnly,
 };
 
+enum class LogActions {
+    eNothing,
+    eEntryExit,
+};
+
 using EmptyType = std::monostate;
 
 // There is always one and only one TopState at the top of the hierarchy
@@ -74,6 +79,10 @@ private:
     /// a child state.
     static void entry(typename Traits::Host& host)
     {
+        if constexpr (Traits::Host::kLogActions == LogActions::eEntryExit)
+        {
+            host.template logEntry<Traits::kState>();
+        }
         if constexpr (Traits::Host::kDefaultActions == DefaultActions::eControlUpdate ||
                       Traits::Host::kDefaultActions == DefaultActions::eEntryExitOnly)
         {
@@ -83,6 +92,10 @@ private:
     }
     static void exit(typename Traits::Host& host)
     {
+        if constexpr (Traits::Host::kLogActions == LogActions::eEntryExit)
+        {
+            host.template logExit<Traits::kState>();
+        }
         if constexpr (Traits::Host::kDefaultActions == DefaultActions::eControlUpdate ||
                       Traits::Host::kDefaultActions == DefaultActions::eEntryExitOnly)
         {
@@ -139,6 +152,10 @@ private:
     /// a child state.
     static void entry(typename Traits::Host& host)
     {
+        if constexpr (Traits::Host::kLogActions == LogActions::eEntryExit)
+        {
+            host.template logEntry<Traits::kState>();
+        }
         if constexpr (Traits::Host::kDefaultActions == DefaultActions::eControlUpdate ||
                       Traits::Host::kDefaultActions == DefaultActions::eEntryExitOnly)
         {
@@ -153,7 +170,10 @@ private:
         {
             host.template eventScheduler().clearAllTimersInGroup(Traits::kState);
         }
-
+        if constexpr (Traits::Host::kLogActions == LogActions::eEntryExit)
+        {
+            host.template logExit<Traits::kState>();
+        }
         if constexpr (Traits::Host::kDefaultActions == DefaultActions::eControlUpdate ||
                       Traits::Host::kDefaultActions == DefaultActions::eEntryExitOnly)
         {
@@ -250,6 +270,10 @@ private:
     /// a child state.
     static void entry(typename Traits::Host& host)
     {
+        if constexpr (Traits::Host::kLogActions == LogActions::eEntryExit)
+        {
+            host.template logEntry<Traits::kState>();
+        }
         if constexpr (Traits::Host::kDefaultActions == DefaultActions::eControlUpdate ||
                       Traits::Host::kDefaultActions == DefaultActions::eEntryExitOnly)
         {
@@ -264,7 +288,10 @@ private:
         {
             host.template eventScheduler().clearAllTimersInGroup(Traits::kState);
         }
-
+        if constexpr (Traits::Host::kLogActions == LogActions::eEntryExit)
+        {
+            host.template logEntry<Traits::kState>();
+        }
         if constexpr (Traits::Host::kDefaultActions == DefaultActions::eControlUpdate ||
                       Traits::Host::kDefaultActions == DefaultActions::eEntryExitOnly)
         {
@@ -350,6 +377,10 @@ struct Transition {
     ~Transition()
     {
         Transition<Target, Source, Target, TransitionSemantics>::entryActions(mHost, Bool<false>());
+        if constexpr (Host::kLogActions == LogActions::eEntryExit)
+        {
+            mHost.template logInit<Target::kState>();
+        }
         Target::init(mHost);
     }
 
@@ -365,6 +396,10 @@ struct Init {
     ~Init()
     {
         Target::entry(mHost);
+        if constexpr (Host::kLogActions == LogActions::eEntryExit)
+        {
+            mHost.template logInit<Target::kState>();
+        }
         Target::init(mHost);
     }
 
@@ -381,15 +416,14 @@ struct StateTraits {
 /// Declaring this struct here as an example of StateMachine expects and as a convenience
 /// for existing users of StateMachine.
 template <typename Event_, typename StateEnum_, typename Clock_,
-          DefaultActions kDefaultActions_ = DefaultActions::eNothing>
+          DefaultActions kDefaultActions_ = DefaultActions::eNothing, LogActions kLogActions_ = LogActions::eNothing>
 struct StateMachineTraits {
     using Clock = Clock_;  // used by EventEmittingStateMachine
     using Event = Event_;
     using StateEnum = StateEnum_;
 
-    // ETA_NAMED_EVENT(StateTransition, "StateTransitionEventName", (Event, utils), (StateEnum, from), (StateEnum, to));
-
     static constexpr DefaultActions kDefaultActions = kDefaultActions_;
+    static constexpr LogActions kLogActions = kLogActions_;  // intended for use with AutoLoggedStateMachine
     static constexpr bool kClearTimersOnExit = false;  // could make default once all state machines support it
 };
 
@@ -404,6 +438,7 @@ public:
     using StateEnum = typename StateMachineTraits::StateEnum;
     // using StateTransition = typename StateMachineTraits::StateTransition;
     static constexpr DefaultActions kDefaultActions = StateMachineTraits::kDefaultActions;
+    static constexpr LogActions kLogActions = StateMachineTraits::kLogActions;
     static constexpr bool kClearTimersOnExit = StateMachineTraits::kClearTimersOnExit;
 
     /// Dispatch (step) state machine directly with a named utils.
