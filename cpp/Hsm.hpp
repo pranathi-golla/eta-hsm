@@ -436,7 +436,7 @@ public:
     /// Expose type of Event so that derived classes can see it
     using Event = typename StateMachineTraits::Event;
     using StateEnum = typename StateMachineTraits::StateEnum;
-    // using StateTransition = typename StateMachineTraits::StateTransition;
+    using Clock = typename StateMachineTraits::Clock;
     static constexpr DefaultActions kDefaultActions = StateMachineTraits::kDefaultActions;
     static constexpr LogActions kLogActions = StateMachineTraits::kLogActions;
     static constexpr bool kClearTimersOnExit = StateMachineTraits::kClearTimersOnExit;
