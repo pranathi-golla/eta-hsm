@@ -290,7 +290,7 @@ private:
         }
         if constexpr (Traits::Host::kLogActions == LogActions::eEntryExit)
         {
-            host.template logEntry<Traits::kState>();
+            host.template logExit<Traits::kState>();
         }
         if constexpr (Traits::Host::kDefaultActions == DefaultActions::eControlUpdate ||
                       Traits::Host::kDefaultActions == DefaultActions::eEntryExitOnly)
