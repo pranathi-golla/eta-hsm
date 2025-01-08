@@ -40,7 +40,7 @@ public:
     template <typename StateMachineTraits::StateEnum state>
     void logEntry()  // If called by hsm within "update", input is available as mInput
     {
-        if (mpLogger && mVerbosityLevel>=2)
+        if (mpLogger && mVerbosityLevel >= 2)
         {
             static_assert(wise_enum::is_wise_enum_v<typename StateMachineTraits::StateEnum>, "Ignorant State Enum");
             *mpLogger << mName << " HSM entering state " << wise_enum::to_string(state) << std::endl;
@@ -50,7 +50,7 @@ public:
     template <typename StateMachineTraits::StateEnum state>
     void logExit()  // If called by hsm within "update", input is available as mInput
     {
-        if (mpLogger && mVerbosityLevel>=2)
+        if (mpLogger && mVerbosityLevel >= 2)
         {
             static_assert(wise_enum::is_wise_enum_v<typename StateMachineTraits::StateEnum>, "Ignorant State Enum");
             *mpLogger << mName << " HSM exiting state " << wise_enum::to_string(state) << std::endl;
@@ -60,7 +60,7 @@ public:
     template <typename StateMachineTraits::StateEnum state>
     void logInit()  // If called by hsm within "update", input is available as mInput
     {
-        if (mpLogger && mVerbosityLevel>=3)
+        if (mpLogger && mVerbosityLevel >= 3)
         {
             static_assert(wise_enum::is_wise_enum_v<typename StateMachineTraits::StateEnum>, "Ignorant State Enum");
             *mpLogger << mName << " HSM initializing state " << wise_enum::to_string(state) << std::endl;
@@ -87,7 +87,7 @@ private:
             typename StateMachineTraits::StateEnum originState = AutoLoggedStateMachine::mState->identify();
             typename StateMachineTraits::StateEnum destinationState = state.identify();
 
-            if (mpLogger && mVerbosityLevel>=1)
+            if (mpLogger && mVerbosityLevel >= 1)
             {
                 static_assert(wise_enum::is_wise_enum_v<typename StateMachineTraits::StateEnum>, "Ignorant State Enum");
                 static_assert(wise_enum::is_wise_enum_v<typename StateMachineTraits::Event>, "Ignorant Event Enum");
