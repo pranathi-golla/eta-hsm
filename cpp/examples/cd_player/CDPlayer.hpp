@@ -9,19 +9,12 @@ namespace eta_hsm {
 namespace examples {
 namespace cd_player {
 
-enum class CdEvent { ePlay, eOpenClose, eStop, eCdDetected, ePause, eEndPause };
+enum class CdEvent { ePlay, eOpenClose, eStop, eCdDetected, ePause, eEndPause, eHammer };
 
-enum class CdState {
-    eTop,
-    eStopped,
-    eOpen,
-    eEmpty,
-    ePlaying,
-    ePaused,
-};
+enum class CdState { eTop, eStopped, eOpen, eEmpty, ePlaying, ePaused, eBroken };
 
-using PlayerTraits =
-    eta_hsm::StateMachineTraits<CdEvent, CdState, std::chrono::steady_clock, DefaultActions::eEntryExitOnly>;
+using PlayerTraits = eta_hsm::StateMachineTraits<CdEvent, CdState, std::chrono::steady_clock,
+                                                 DefaultActions::eEntryExitOnly, LogActions::eNothing>;
 
 /// While it is possible to declare and manipulate states directly (see examples::cd_player_basic),
 /// inheriting from eta_hsm::StateMachine makes it somewhat easier and provides more
@@ -66,6 +59,7 @@ using Open = eta_hsm::LeafState<CdTraits<CdState::eOpen>, Top>;
 using Empty = eta_hsm::LeafState<CdTraits<CdState::eEmpty>, Top>;
 using Playing = eta_hsm::LeafState<CdTraits<CdState::ePlaying>, Top>;
 using Paused = eta_hsm::LeafState<CdTraits<CdState::ePaused>, Top>;
+using Broken = eta_hsm::LeafState<CdTraits<CdState::eBroken>, Top>;
 
 }  // namespace cd_player
 }  // namespace examples

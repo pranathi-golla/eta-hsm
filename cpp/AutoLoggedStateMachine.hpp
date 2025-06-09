@@ -10,10 +10,17 @@ namespace eta_hsm {
 
 // using Format = char[eta::target_log::kFormatMax-1];
 
+// Verbosity Levels:
+// 0 = no logging
+// 1 = transition only
+// 2 = 1 + entry/exit
+// 3 = 2 + initialization
+
 template <typename SM, typename StateMachineTraits, typename Logger>
 class AutoLoggedStateMachine : public eta_hsm::StateMachine<SM, StateMachineTraits> {
 public:
-    AutoLoggedStateMachine(const std::string& name, Logger* logger = nullptr) : mName{name}, mpLogger{logger}
+    AutoLoggedStateMachine(const std::string& name, Logger* logger = nullptr, unsigned int verbosityLevel = 3)
+        : mName{name}, mpLogger{logger}, mVerbosityLevel{verbosityLevel}
     {
         //        std::strcpy(mTransitionFormat, name.c_str());
         //        std::strcat(mTransitionFormat, " HSM transitioning from %s to %s due to %s");
@@ -28,6 +35,36 @@ public:
         mEventDispatched = evt;
         // Let the base class peform the actual dispatch normally
         StateMachine<SM, StateMachineTraits>::dispatch(evt);
+    }
+
+    template <typename StateMachineTraits::StateEnum state>
+    void logEntry()  // If called by hsm within "update", input is available as mInput
+    {
+        if (mpLogger && mVerbosityLevel >= 2)
+        {
+            static_assert(wise_enum::is_wise_enum_v<typename StateMachineTraits::StateEnum>, "Ignorant State Enum");
+            *mpLogger << mName << " HSM entering state " << wise_enum::to_string(state) << std::endl;
+        }
+    }
+
+    template <typename StateMachineTraits::StateEnum state>
+    void logExit()  // If called by hsm within "update", input is available as mInput
+    {
+        if (mpLogger && mVerbosityLevel >= 2)
+        {
+            static_assert(wise_enum::is_wise_enum_v<typename StateMachineTraits::StateEnum>, "Ignorant State Enum");
+            *mpLogger << mName << " HSM exiting state " << wise_enum::to_string(state) << std::endl;
+        }
+    }
+
+    template <typename StateMachineTraits::StateEnum state>
+    void logInit()  // If called by hsm within "update", input is available as mInput
+    {
+        if (mpLogger && mVerbosityLevel >= 3)
+        {
+            static_assert(wise_enum::is_wise_enum_v<typename StateMachineTraits::StateEnum>, "Ignorant State Enum");
+            *mpLogger << mName << " HSM initializing state " << wise_enum::to_string(state) << std::endl;
+        }
     }
 
     /// Friend the LeafState so that it can access `next` below without exposing it to the world
@@ -50,7 +87,7 @@ private:
             typename StateMachineTraits::StateEnum originState = AutoLoggedStateMachine::mState->identify();
             typename StateMachineTraits::StateEnum destinationState = state.identify();
 
-            if (mpLogger)
+            if (mpLogger && mVerbosityLevel >= 1)
             {
                 static_assert(wise_enum::is_wise_enum_v<typename StateMachineTraits::StateEnum>, "Ignorant State Enum");
                 static_assert(wise_enum::is_wise_enum_v<typename StateMachineTraits::Event>, "Ignorant Event Enum");
@@ -72,6 +109,7 @@ private:
     // Format mTransitionFormat {};
     std::string mName{};
     Logger* mpLogger;
+    unsigned int mVerbosityLevel;
 };
 
 }  // namespace eta_hsm
