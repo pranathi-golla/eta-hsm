@@ -237,6 +237,8 @@ class StateMachine:
         self._plant_uml_legend = []
         self._plant_uml_out_of_scope_transition = False
 
+        self._enum_to_typedef = {}
+
     @staticmethod
     def find(path, name):
         """Walk directory to find."""
@@ -245,6 +247,7 @@ class StateMachine:
                 return os.path.join(root, name)
 
     def state(self, name):
+        print("states {}".format(self._states))
         """Get a reference to an individual state by name."""
         return self._states[name]
 
@@ -294,43 +297,55 @@ class StateMachine:
         Scan a file looking for state declarations.
         """
         header = self.find(self._path, self._basename + ".hpp")
-        with open(header, "r") as fid:
-            lines = fid.readlines()
+        print("Header {}".format(self._path + self._basename + ".hpp"))
+        with open(header, "r") as f:
+            raw_lines = [re.sub(r"//.*", "", line).rstrip() for line in f]
 
-        for line in lines:
-            if "//" == line.strip()[:2]:
-                # ignore commented lines
+        statements, current = [], ""
+        for line in raw_lines:
+            s = line.strip()
+            if not s:
+                continue
+            if s.startswith("using "):
+                current = s
+            else:
+                current += " " + s
+            if s.endswith(";"):
+                statements.append(current)
+                current = ""
+
+        re_using = re.compile(r'^\s*using\s+(\w+)\s*=\s*(.+);$')
+        re_top = re.compile(r'\bTopState<')
+        re_comp = re.compile(r'\bCompState<([^,]+),\s*([^>]+)>')
+        re_leaf = re.compile(r'\bLeafState<([^,]+),\s*([^>]+)>')
+        # pull enum from traits like HapticStateTraits<HapticState::IDLE>
+        re_enum = re.compile(r'HapticState::(\w+)')
+
+        for stmt in statements:
+            m = re_using.match(stmt)
+            if not m:
                 continue
 
-            line_split = re.split(r",|:+|\s+|>|<|;|\t+|[(|)]", line)
-            line_split = list(filter(None, line_split))
+            state_name, rhs = m.groups()
+            rhs = rhs.strip()
 
-            # for now, rely upon the fact that we're going
-            # to find the states in order
-            if "TopState<" in line:
-                state_name = line.split()[1]  # second chunk
+            if re_top.search(rhs):
                 self.add_state(State(name=state_name))
-            elif "ETA_HSM_TOP_STATE" in line_split:
-                self.add_state(State(name=line_split[2]))
-            elif "CompState<" in line or "LeafState<" in line:
-                state_name = line.split()[1]  # second chunk
-                parent_name = line.split()[-1][
-                    :-2
-                ]  # last chunk, then strip off the '>;'
-                if state_name in ["CompState", "LeafState"]:
-                    # ignore some using defines that look similar
-                    # to state declarations
-                    continue
-                self.add_state(
-                    State(name=state_name, parent=self.state(parent_name))
-                )
-            elif (
-                "ETA_HSM_LEAF_STATE" in line_split
-                or "ETA_HSM_COMP_STATE" in line_split
-            ):
-                self.add_state(
-                    State(name=line_split[2], parent=self.state(line_split[3]))
-                )
+                # Top maps from eTop -> Top if it appears elsewhere
+                self._enum_to_typedef.setdefault('eTop', state_name)
+                continue
+
+            mc = re_comp.search(rhs)
+            ml = re_leaf.search(rhs)
+            if mc or ml:
+                first_arg, parent = (mc or ml).groups()
+                parent = parent.strip()
+                # Register the child
+                self.add_state(State(name=state_name, parent=self.state(parent)))
+                # Record enum -> typedef mapping if present
+                em = re_enum.search(first_arg)
+                if em:
+                    self._enum_to_typedef[em.group(1)] = state_name
 
     def extract_initial_states(self, verbose=False, extension="-hsm.hpp"):
         """Extract initial states.
@@ -459,56 +474,63 @@ class StateMachine:
         Scan a file looking for entry and exit actions.
         """
         header = self.find(self._path, self._basename + "-inl.hpp")
-        with open(header, "r") as fid:
-            lines = fid.readlines()
+        if header is None:
+            if verbose:
+                print("No *-inl.hpp file; skipping entry/exit extraction.")
+            return
+
+        # Allow optional namespaces like haptic::HapticState::IDLE
+        enum_pat = r'(?:\w+::)*HapticState::(?P<state>\w+)'
+        entry_re = re.compile(rf'inline\s+void\s+\w+::(?:entry|hsmEntry)\s*<\s*{enum_pat}\s*>\s*\(\s*\)\s*\{{')
+        exit_re = re.compile(rf'inline\s+void\s+\w+::(?:exit|hsmExit)\s*<\s*{enum_pat}\s*>\s*\(\s*\)\s*\{{')
 
         in_entry_function = False
         in_exit_function = False
-        for line in lines:
-            if "//" == line.strip()[:2]:
-                # ignore commented lines
-                continue
+        state_enum = None
 
-            if (
-                "::entry" in line or "::hsmEntry" in line
-            ) and "inline" in line:
-                in_entry_function = True
-                state_name = line.split("::")[-1][
-                    1:-4
-                ]  # strip off leading 'e' and trailing '>()'
-                if verbose:
-                    print("{} entry".format(state_name))
-            elif (
-                "::exit" in line or "::hsmExit" in line
-            ) and "inline" in line:
-                in_exit_function = True
-                state_name = line.split("::")[-1][
-                    1:-4
-                ]  # strip off leading 'e' and trailing '>()'
-                if verbose:
-                    print("{} exit".format(state_name))
-            elif "{" == line.strip():
-                if verbose:
-                    print("opening")
-                pass
-            elif in_entry_function and "}" == line.strip():
-                in_entry_function = False
-                if verbose:
-                    print("closing entry")
-            elif in_exit_function and "}" == line.strip():
-                in_exit_function = False
-                if verbose:
-                    print("closing exit")
-            elif in_entry_function:
-                # inside the {}, so let's just grab whatever is here for now
-                self.state(state_name).add_entry(line)
-                if verbose:
-                    print("entry = {}".format(line.strip()))
-            elif in_exit_function:
-                # inside the {}, so let's just grab whatever is here for now
-                self.state(state_name).add_exit(line)
-                if verbose:
-                    print("exit = {}".format(line.strip()))
+        with open(header, "r") as fid:
+            for raw in fid:
+                line = raw.rstrip("\n")
+
+                if line.strip().startswith("//"):
+                    continue
+
+                if not in_entry_function and not in_exit_function:
+                    m = entry_re.search(line)
+                    if m:
+                        in_entry_function = True
+                        state_enum = m.group("state")
+                        if verbose:
+                            print(f"{state_enum} entry {{")
+                        continue
+
+                    m = exit_re.search(line)
+                    if m:
+                        in_exit_function = True
+                        state_enum = m.group("state")
+                        if verbose:
+                            print(f"{state_enum} exit {{")
+                        continue
+
+                if (in_entry_function or in_exit_function) and line.strip() == "}":
+                    if verbose:
+                        print("}  // closing entry" if in_entry_function else "}  // closing exit")
+                    in_entry_function = in_exit_function = False
+                    state_enum = None
+                    continue
+
+                if in_entry_function:
+                    # Translate enum -> typedef name
+                    typedef_name = self._enum_to_typedef.get(state_enum, state_enum)
+                    self.state(typedef_name).add_entry(line)
+                    if verbose:
+                        print(f"  entry stmt: {line.strip()}")
+
+                elif in_exit_function:
+                    typedef_name = self._enum_to_typedef.get(state_enum, state_enum)
+                    self.state(typedef_name).add_exit(line)
+                    if verbose:
+                        print(f"  exit stmt: {line.strip()}")
 
     def generate_event_set(self):
         """Generate a set of all events that are USED by the state machine.
@@ -806,3 +828,4 @@ if __name__ == "__main__":
     example_control.generate_plant_uml(
         filename="testing/ExampleControl-Dead.txt", top="Dead"
     )
+
