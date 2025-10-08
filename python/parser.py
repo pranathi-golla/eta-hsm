@@ -828,4 +828,3 @@ if __name__ == "__main__":
     example_control.generate_plant_uml(
         filename="testing/ExampleControl-Dead.txt", top="Dead"
     )
-
